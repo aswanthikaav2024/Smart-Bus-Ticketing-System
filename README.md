@@ -101,12 +101,6 @@ Project images are available in the **Project_Images** folder.
 
 ---
 
-## 🔌 Circuit Diagram
-
-The circuit diagram is available in the **Circuit_Diagram** folder.
-
----
-
 ## 🧩 Block Diagram
 
 The block diagram is available in the **Block_Diagram** folder.
@@ -121,7 +115,7 @@ The complete project report is available in the **Documentation** folder.
 
 ## 🎥 Demo Video
 
-The project demonstration video link is available in the **Demo/video_link.txt** file.
+The project demonstration video link is available in the  file.
 
 ---
 
@@ -132,9 +126,3 @@ The project demonstration video link is available in the **Demo/video_link.txt**
 B.Tech Computer Science and Engineering (AI & Robotics)
 
 VIT Chennai
-
----
-
-## 📜 License
-
-This project is developed for educational and academic purposes.
