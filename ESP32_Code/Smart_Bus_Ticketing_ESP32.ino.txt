@@ -1,0 +1,121 @@
+#include <SPI.h>
+#include <MFRC522.h>
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+#include <HardwareSerial.h>
+
+// Pins for ESP32-S3
+#define SS_PIN 10
+#define RST_PIN 5
+#define SCK_PIN 11
+#define MISO_PIN 21
+#define MOSI_PIN 14
+#define ENTRY_BUTTON 6
+#define ENTRY_IR 1
+#define EXIT_IR 2
+#define RED_LED 42
+
+MFRC522 mfrc522(SS_PIN, RST_PIN);
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+HardwareSerial NanoSerial(1);
+
+const int PASSENGER_LIMIT = 10;
+int passengerCount = 0;
+bool accessAuthorized = false;
+
+byte myTagID[] = {0xDE, 0xAD, 0xBE, 0xEF};
+
+void setup() {
+  Serial.begin(115200);
+  NanoSerial.begin(9600, SERIAL_8N1, 44, 43);
+
+  SPI.begin(SCK_PIN, MISO_PIN, MOSI_PIN, SS_PIN);
+  mfrc522.PCD_Init();
+
+  Wire.begin(8, 9);
+
+  lcd.init();
+  lcd.backlight();
+
+  pinMode(ENTRY_BUTTON, INPUT_PULLUP);
+  pinMode(ENTRY_IR, INPUT);
+  pinMode(EXIT_IR, INPUT);
+  pinMode(RED_LED, OUTPUT);
+
+  updateDisplay();
+}
+
+void loop() {
+
+  if (digitalRead(EXIT_IR) == LOW) {
+    if (passengerCount > 0) {
+      passengerCount--;
+      NanoSerial.print('X');
+      digitalWrite(RED_LED, LOW);
+      updateDisplay();
+      delay(1500);
+    }
+  }
+
+  if (mfrc522.PICC_IsNewCardPresent() && mfrc522.PICC_ReadCardSerial()) {
+
+    if (passengerCount >= PASSENGER_LIMIT) {
+      lcd.setCursor(0,1);
+      lcd.print("BUS FULL!       ");
+      digitalWrite(RED_LED,HIGH);
+      delay(2000);
+      updateDisplay();
+    }
+
+    else if(memcmp(mfrc522.uid.uidByte,myTagID,4)==0){
+      accessAuthorized=true;
+      lcd.setCursor(0,1);
+      lcd.print("Press Button!   ");
+    }
+
+    else{
+      lcd.setCursor(0,1);
+      lcd.print("Invalid Card!   ");
+      delay(1500);
+      updateDisplay();
+    }
+
+    mfrc522.PICC_HaltA();
+  }
+
+  if(accessAuthorized && digitalRead(ENTRY_BUTTON)==LOW){
+
+      NanoSerial.print('E');
+
+      unsigned long entryTime=millis();
+
+      while(digitalRead(ENTRY_IR)==HIGH && millis()-entryTime<5000){
+          delay(10);
+      }
+
+      if(digitalRead(ENTRY_IR)==LOW){
+          passengerCount++;
+      }
+
+      accessAuthorized=false;
+      updateDisplay();
+  }
+}
+
+void updateDisplay(){
+
+  lcd.clear();
+
+  lcd.setCursor(0,0);
+  lcd.print("Pass:");
+  lcd.print(passengerCount);
+  lcd.print("/");
+  lcd.print(PASSENGER_LIMIT);
+
+  lcd.setCursor(0,1);
+
+  if(passengerCount>=PASSENGER_LIMIT)
+      lcd.print("STATUS: FULL");
+  else
+      lcd.print("Scan Ticket...");
+}

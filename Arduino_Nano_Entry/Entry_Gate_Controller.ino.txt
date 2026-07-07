@@ -1,0 +1,38 @@
+#include <Servo.h>
+
+Servo entryServo;
+
+#define BUZZER_PIN 11
+
+void setup() {
+  Serial.begin(9600);
+  entryServo.attach(9);     // Entry Servo
+  entryServo.write(0);      // Gate Closed
+  pinMode(BUZZER_PIN, OUTPUT);
+}
+
+void loop() {
+
+  if (Serial.available()) {
+
+    char cmd = Serial.read();
+
+    if (cmd == 'E') {
+
+      // Entry Beep
+      digitalWrite(BUZZER_PIN, HIGH);
+      delay(150);
+      digitalWrite(BUZZER_PIN, LOW);
+
+      // Open Entry Gate
+      entryServo.write(90);
+
+      delay(3000);
+
+      // Close Entry Gate
+      entryServo.write(0);
+    }
+
+  }
+
+}

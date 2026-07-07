@@ -1,0 +1,48 @@
+#include <Servo.h>
+
+Servo exitServo;
+
+#define BUZZER_PIN 11
+
+void setup() {
+
+  Serial.begin(9600);
+
+  exitServo.attach(9);     // Exit Servo
+
+  exitServo.write(0);
+
+  pinMode(BUZZER_PIN, OUTPUT);
+}
+
+void loop() {
+
+  if (Serial.available()) {
+
+    char cmd = Serial.read();
+
+    if (cmd == 'X') {
+
+      // Exit Beep
+      digitalWrite(BUZZER_PIN, HIGH);
+      delay(100);
+      digitalWrite(BUZZER_PIN, LOW);
+
+      delay(100);
+
+      digitalWrite(BUZZER_PIN, HIGH);
+      delay(100);
+      digitalWrite(BUZZER_PIN, LOW);
+
+      // Open Exit Gate
+      exitServo.write(90);
+
+      delay(3000);
+
+      // Close Exit Gate
+      exitServo.write(0);
+    }
+
+  }
+
+}
